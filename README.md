@@ -1,4 +1,3 @@
-# Tyrone_Jenkins
 This version is only to show off code.
 
 discord bot
