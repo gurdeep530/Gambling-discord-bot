@@ -1,2 +1,12 @@
-# Gambling-discord-bot
-Discord bot with an economy where you can bet on mini games and create real-time under/over lines for a player on Rainbow Six Siege 
+# Tyrone_Jenkins
+discord bot
+
+Economy setup that gives discord members their own amount of money.
+Siegeline command creates a betting line for a player and allows people in the discord to make bets on the line.
+
+
+
+Dependencies:
+npm i puppeteer
+npm i discord.js-games
+npm i discord.js
