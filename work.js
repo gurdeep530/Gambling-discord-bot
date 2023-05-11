@@ -1,7 +1,9 @@
 const {SlashCommandBuilder} = require("discord.js");
 const parseMilliSeconds = require("parse-ms-2");
 const profileModel = require("../models/profileSchema");
-const {numberWithCommas, getRandomInt} = require("../logic/miscellaneousLogic")
+const {numberWithCommas, getRandomInt} = require("../logic/miscellaneousLogic");
+const { get } = require("mongoose");
+const { checkForDebt } = require("../logic/checkForDebt");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -9,16 +11,15 @@ module.exports = {
         .setDescription("Work for coins bitch"),
     async execute(interaction, profileData){
         const id  = await interaction.user.id;
-        const { workLastUsed, tryToWork, coins } = profileData;
-        
+        let { workLastUsed, tryToWork, coins } = profileData;
         const cooldown = 3600000
-        const timeLeft = cooldown - (Date.now() - workLastUsed);
+        let timeLeft = cooldown - (Date.now() - workLastUsed);
 
         if(timeLeft > 0)
         {
             await interaction.deferReply({ephemeral: true});
-            const {hours, minutes, seconds} = parseMilliSeconds(timeLeft);
-
+            let {hours, minutes, seconds} = parseMilliSeconds(timeLeft);
+            
             if(minutes > 30 && tryToWork <= 1 )
             {
                 await increaseTryToWork(id, interaction);
@@ -41,16 +42,23 @@ module.exports = {
                 await interaction.editReply(`<@${interaction.user.id}> has $${await numberWithCommas(profileData.coins)}.`, {ephemeral: false});
             }
             else{
-                await interaction.editReply("You can't work for another "+ minutes + " mins " + seconds + " sec");
+                if(await getRandomInt(1,2) == 1){
+                    let randmAmt = await updateLastWorkAndCoins(profileData, interaction);
+
+                    await interaction.editReply(`I killed the time left. You earned $${await numberWithCommas(randmAmt)}. Your balance is $${await numberWithCommas(profileData.coins + randmAmt)}.`);
+                }else{
+                    await interaction.editReply("You can't work for another "+ minutes + " mins " + seconds + " sec");
+                }
             }
            
         }else {
             await interaction.deferReply();
 
-            let randmAmt = await updateLastWorkAndCoins(id, interaction);
+            let randmAmt = await updateLastWorkAndCoins(profileData, interaction);
 
-            await interaction.editReply(`You earned $${await numberWithCommas(randmAmt)}`);
+            await interaction.editReply(`You earned $${await numberWithCommas(randmAmt)}. Your balance is $${await numberWithCommas(profileData.coins + randmAmt)}.`);
         }
+        checkForDebt(interaction)
     },
 
 }
@@ -71,12 +79,52 @@ async function increaseTryToWork(id, interaction)
     }
 }
 
-async function updateLastWorkAndCoins(id, interaction)
+async function getRandomAmount(profileData)
 {
-    const randmAmt = await getRandomInt(25000, 100000);
+    let randmAmt;
+    let hundredK = 100000;
+    let mill = 10 * hundredK;
+    let fiveHundMill = 500 * mill;
+    let bill = 1000 * mill;
+    let coins = parseFloat(profileData.coins);
+    let debt = profileData.debt;
+    if(debt == true)
+    {
+        let posCoins = coins * -1;
+        if(coins < -100000)
+            randmAmt = await getRandomInt(posCoins* .9, posCoins*1.005)
+        else
+            randmAmt = await getRandomInt(posCoins*1.05, posCoins*2)
+    }
+    else if(debt == false && coins <= (2.5*hundredK)){
+        randmAmt = await getRandomInt(0, hundredK);
+    }
+    else if(coins > (2.5*hundredK) && coins <= mill && debt == false){
+        randmAmt = await getRandomInt(coins/100, coins/2);
+    }
+    else if(coins > mill &&  coins <= (100*mill) && debt == false){
+        randmAmt = await getRandomInt(coins/10, coins/2);
+    }
+    else if(coins > (100*mill) && coins <= fiveHundMill && debt == false){
+        randmAmt = await getRandomInt(coins/500, coins/2)
+    }
+    else if(coins > fiveHundMill && coins <= bill && debt == false){
+        randmAmt = await getRandomInt(coins/100, coins/2);
+    }
+    else if(coins > bill && debt == false){
+        randmAmt = await getRandomInt(0, coins/2); 
+    }
+
+    return randmAmt;
+}
+
+async function updateLastWorkAndCoins(profileData, interaction)
+{
+    let randmAmt = await getRandomAmount(profileData);
+
     try{
         await profileModel.findOneAndUpdate(
-            {$and:[{userId: id}, {serverId: interaction.guild.id}]},
+            {$and:[{userId: profileData.userId}, {serverId: interaction.guild.id}]},
             { 
                 $set: {
                     workLastUsed: Date.now(),

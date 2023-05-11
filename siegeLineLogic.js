@@ -13,7 +13,7 @@ exports.executeScrappers = async function(psn)
     let txtLine = 
         await scrapeAverageMatchStats('https://r6.tracker.network/profile/psn/'+ psn +'/matches');
 
-    let rank = await R6.rank('psn', psn);
+    let rank = await getRank(psn);
     
     let totalMatchesKillsLine = [rank.matches, rank.kills, txtLine.toString()];
     return totalMatchesKillsLine;
@@ -56,7 +56,9 @@ exports.getProfile = async function(interaction){
     return profileData;
 }
 
-exports.betOverHandler = async function(i, BetID, customBet = null, customBType = null){
+//#region bethandlers
+
+exports.betOverHandler = async function(i, BetID, betMultiplier, customBet = null, customBType = null){
 
     let bettor = await bettorModel.findOne(
         {$and: [{userId: i.user.id}, {serverId: i.guild.id}, {betId: BetID}]})
@@ -77,7 +79,7 @@ exports.betOverHandler = async function(i, BetID, customBet = null, customBType 
                 userName: i.user.username,
                 userId: i.user.id,
                 serverId: i.guild.id,
-                betOver: 5
+                betOver: betMultiplier
             });
         }
     }
@@ -98,14 +100,15 @@ exports.betOverHandler = async function(i, BetID, customBet = null, customBType 
             { $and: [{userId: i.user.id}, {serverId: i.guild.id}, {betId: BetID}]},
             {  
                 $inc:{
-                    betOver: 5
+                    betOver: betMultiplier
                 }
             });
         }
     }   
+    return bettor;
 }
 
-exports.betUnderHandler = async function(i, BetID, customBet = null, customBType = null){
+exports.betUnderHandler = async function(i, BetID, betMultiplier, customBet = null, customBType = null){
     
     let bettor = await bettorModel.findOne(
         {$and: [{userId: i.user.id}, {serverId: i.guild.id}, {betId: BetID}]})
@@ -127,7 +130,7 @@ exports.betUnderHandler = async function(i, BetID, customBet = null, customBType
                 userName: i.user.username,
                 userId: i.user.id,
                 serverId: i.guild.id,
-                betUnder: 5
+                betUnder: betMultiplier
             });
         }
     }
@@ -148,19 +151,21 @@ exports.betUnderHandler = async function(i, BetID, customBet = null, customBType
                 {$and: [{userId: i.user.id},{serverId: i.guild.id},{betId: BetID}]},
                 {  
                     $inc:{
-                        betUnder: 5
+                        betUnder: betMultiplier
                     }
                 });
         }
     }
+    return bettor;
 }
+//#endregion
 
 exports.finishBet = async function(interaction, betData, interactionMessage, psn, arr, outcome, intervalId, latestBetWillLast,betLastedTooLong)
 {
     let outcomeBetTimeSussyBet = await checkForUpdate(betData, psn, arr, outcome, intervalId, latestBetWillLast, betLastedTooLong);
     outcome = outcomeBetTimeSussyBet[0];
     betLastedTooLong = outcomeBetTimeSussyBet[1];
-    outcomeBetTimeSussyBet[3] = null;
+
     if(outcome == true && outcomeBetTimeSussyBet[2] == null){
           
         await updateForOverBettors(interaction,betData, 1);
@@ -182,12 +187,10 @@ exports.finishBet = async function(interaction, betData, interactionMessage, psn
         await getBetResults(interaction, betData, interactionMessage, betLastedTooLong, outcome);
 
     }else if(outcomeBetTimeSussyBet[2] == true){
-        await interactionMessage.edit('fuck off')
+        await interactionMessage.edit('fuck off, Bet is cancelled.')
 
     }else if(outcomeBetTimeSussyBet[2] == false){
-        await interactionMessage.edit('Bet is cancelled because the match ended wayyy to quick so I think you'
-                                        + ' either were trying to get free money or you just started a late bet. '
-                                        + 'Please start bets in the beginning of the game.')
+        await interactionMessage.edit('Bet is cancelled because the match ended to quick.')
     }
     
 }
@@ -302,12 +305,8 @@ async function updateForUnderBettors(interaction, betData, plusOrMinus)
 
 async function checkForUpdate(betData, psn, arr, outcome, intervalId, latestBetWillLast, betLastedTooLong)
 {
-    let rank = await R6.rank('psn', psn);
-
-    do {
-        rank = await R6.rank('psn', psn);
-    } while(rank.kills == 'undefined'|| rank.kills == 0 || rank.matches.includes('Y'));
-   
+    let rank = await getRank(psn);
+    
     let totalMatches =  parseInt(arr[0].replace(',',''));
     let totalKills = parseInt(arr[1].replace(',',''));
     let line = arr[2];
@@ -315,30 +314,32 @@ async function checkForUpdate(betData, psn, arr, outcome, intervalId, latestBetW
     let sussyBet = null;
     let thirteenMins = 780000;
     let fourMins = 240000;
-    console.log(rank.matches + ' ' + rank.kills )
+    console.log('sieglineLogic line 317\n checkForUpdate #s',rank.matches + ' ' + rank.kills)
     if(totalMatches < updatedMatches)
     {
         let updatedKills = parseInt(rank.kills.replace(',',''));
         let killDiff = updatedKills - totalKills;
 
         let betTime = thirteenMins - (Date.now() - betData.betCreationTime);
+        
 
         if(killDiff > line)
         {
             if(betTime <= 0)
             {outcome = true;}
-            else if(betTime <= thirteenMins && betTime >= fourMins)
+            else if(betTime <= thirteenMins && betTime >= fourMins && betTime < fourMins)
             {sussyBet = false;}
             else if(betTime > fourMins)
             {sussyBet = true;}
         }else{
             if(betTime <= 0)
             {outcome = false;}
-            else if(betTime <= thirteenMins && betTime >= fourMins)
+            else if(betTime <= thirteenMins && betTime >= fourMins && betTime < fourMins)
             {sussyBet = false;}
             else if(betTime > fourMins)
             {sussyBet = true;}
         }
+        console.log(sussyBet);
 
     }
 
@@ -354,10 +355,35 @@ async function checkForUpdate(betData, psn, arr, outcome, intervalId, latestBetW
         clearInterval(intervalId);
     }
 
-    console.log(outcome, ' ', psn,)
+    console.log('sieglineLogic line 356\n checkForUpdate results: ' + outcome, ' ', psn,)
     return [outcome, betLastedTooLong, sussyBet]
 }
 
+exports.getBettorsEmbed = async function(interaction, interactionMessage, betData, row1, row2){
+    let betsEmbed = new EmbedBuilder().setTitle(`Bettors for ${betData.playerName}'s line of ${betData.betLine}`)
+                                        .setFooter({text:'Betting line closed'})
+                                        .setTimestamp();
+    let bettors = await bettorModel.find({
+        $and:[{$or: [{betOver:{$ne:0}}, {betUnder:{$ne:0}}]}, {serverId: interaction.guild.id}, {betId: betData.betId}]
+    });
+
+    let desc = "";
+    for(let i = 0; i < bettors.length; i++)
+    {
+        bettorProfile = await profileModel.findOne({$and:[{userId: bettors[i].userId},{serverId: bettors[i].serverId}]});
+
+        if(bettors[i].betOver > 0 || bettors[i].betUnder > 0)
+        {
+            let amount = (bettors[i].betOver - bettors[i].betUnder) * 1000
+            if(amount < 0 ){amount *= -1}
+            desc += `${(i+1)}. ${bettors[i].userName} bet $${await numberWithCommas(amount)}. \n`;
+        }
+    }
+    if(desc !== ""){
+            betsEmbed.setDescription(desc);
+    } 
+    return interactionMessage.edit({embeds: [betsEmbed], components: [row1, row2]});
+}
 
 async function getBetResults(interaction, betData, interactionMessage, betLastedTooLong, outcome){
     
@@ -402,3 +428,19 @@ async function getBetResults(interaction, betData, interactionMessage, betLasted
     return interactionMessage.edit({embeds: [resultsEmbed]});
 }
 
+async function getRank(psn)
+{
+    let rank;
+    rank = await R6.rank('psn', psn);
+
+    console.log('sieglineLogic line 408\n getRank #s: '+ rank.matches + ' ' + rank.kills )
+
+    while(typeof rank.kills !== 'string' ||typeof rank.matches !== 'string'
+            || rank.kills == 'undefined'|| rank.matches == 'undefined' 
+            || rank.kills == 0 || rank.matches.includes('Y')){
+        rank = await R6.rank('psn', psn);
+        
+    }
+    
+    return rank;
+}

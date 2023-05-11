@@ -1,3 +1,5 @@
+//not needed for now
+
 const {SlashCommandBuilder} = require("discord.js");
 const {betOverHandler, betUnderHandler} = require('../logic/siegeLineLogic');
 const {getBetAmount} = require('../logic/getBetAmount');
@@ -26,7 +28,8 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction, profileData){
-        await interaction.deferReply({ephemeral: true});
+        await interaction.reply(`place bet command turned off`)
+       /* await interaction.deferReply({ephemeral: true});
         
         let betAmount, betId, betType;
         betAmount = await getBetAmount(interaction, profileData);
@@ -57,6 +60,6 @@ module.exports = {
             await interaction.editReply(`too high of a bet for you <@${interaction.user.id}>`);
         }
 
-
+        */
     }
 }

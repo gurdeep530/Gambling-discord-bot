@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const profileModel = require("../models/profileSchema");
 const{checkForDebt} = require("../logic/checkForDebt");
+const {numberWithCommas} = require("../logic/miscellaneousLogic");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -68,7 +69,7 @@ async function adminAdd(interaction){
     const user = interaction.options.getUser("user");
     const amount = interaction.options.getInteger("amount");
 
-    await profileModel.findOneAndUpdate(
+    let profileData = await profileModel.findOneAndUpdate(
         {$and: [{userId: user.id}, {serverId: interaction.guild.id}]},
         {
             $inc: {
@@ -76,14 +77,14 @@ async function adminAdd(interaction){
             }
         }
     );
-    await interaction.editReply(`Added $${amount} to <@${user.id}>'s bank`);
+    await interaction.editReply(`Added $${await numberWithCommas(amount)} to <@${user.id}>'s bank. Their balance is $${await numberWithCommas(profileData.coins - amount)}`);
 }
 
 async function adminSub(interaction){
     const user = interaction.options.getUser("user");
     const amount = interaction.options.getInteger("amount");
 
-    await profileModel.findOneAndUpdate(
+    let profileData = await profileModel.findOneAndUpdate(
         {$and: [{userId: user.id}, {serverId: interaction.guild.id}]},
         {
             $inc: {
@@ -91,6 +92,6 @@ async function adminSub(interaction){
             }
         }
     );
-
-    await interaction.editReply(`Subtracted $${amount} from <@${user.id}>'s bank`);
+    
+    await interaction.editReply(`Subtracted $${await numberWithCommas(amount)} from <@${user.id}>'s bank. Their balance is $${await numberWithCommas(profileData.coins - amount)}`);
 }

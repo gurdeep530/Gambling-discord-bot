@@ -12,7 +12,7 @@ module.exports = {
         .addStringOption((option) =>
         option
             .setName('amount')
-            .setDescription('Bet Amount')
+            .setDescription(`Amount you want to bet or 'half' or 'all'`)
             .setRequired(true)
         ),
     async execute(interaction, profileData){
@@ -30,10 +30,11 @@ module.exports = {
                     embed:{
                         winMessage: '{user} congratulations, you won '+ await numberWithCommas(betAmount) +' dollars, your balance is: '+ await numberWithCommas(profileData.coins+betAmount),
                         loseMessage: '{user} lost '+ await numberWithCommas(betAmount) +' dollars, your balance is: '+ await numberWithCommas(profileData.coins-betAmount),
+                        timeEndMessage :`Time ended, <@${interaction.user.id}> lost 75% of ${await numberWithCommas(betAmount)} dollar bet, your balance is: ${await numberWithCommas(profileData.coins-(betAmount*.75))}`,
                     }
                 });
-    
-                updateGameBets(interaction, betAmount, result);
+               
+                await updateGameBets(interaction, betAmount, result);
                 
                 console.log(interaction.user.username + "'s blackjack game result: "+ result);
             }else if(betAmount == -1)
@@ -47,7 +48,7 @@ module.exports = {
             await interaction.reply(`<@${interaction.user.id}> you still have a blackjack game going play it or let it end before starting a new game.`)
         }
         else{
-            await interaction.reply(`Fuck off <@${interaction.user.id} you are in debt get ya money if you wanna play.`)
+            await interaction.reply(`Fuck off <@${interaction.user.id}> you are in debt get ya money if you wanna play.`)
         }
 
     }

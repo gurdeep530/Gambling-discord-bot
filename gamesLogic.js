@@ -1,26 +1,37 @@
 const profileModel = require("../models/profileSchema");
 const{checkForDebt} = require("./checkForDebt");
 
-exports.updateGameBets = async function(interaction, betAmount, result, bj = true){
 
+exports.updateGameBets = async function(interaction, betAmount, result, betMultiplier = 0,  bj = true){
+    
+    //blackjack
     if(result == 'win')
     {
-        await updateMoney(interaction, betAmount,1)
+        betMultiplier = 1
+        await updateMoney(interaction, betAmount,betMultiplier)
         await checkForDebt(interaction);
     }
     else if(result == 'loss')
     {
-        await updateMoney(interaction, betAmount, -1)
+        betMultiplier = -1
+        await updateMoney(interaction, betAmount, betMultiplier)
         await checkForDebt(interaction);
 
-    }else if(result == true)
+    }else if(result == 'time ended')
     {
-        await updateMoney(interaction, betAmount, 5)
+        betMultiplier = -.75
+        await updateMoney(interaction, betAmount, betMultiplier)
+        await checkForDebt(interaction);
+    }
+    //slots and roulette
+    else if(result == true)
+    {
+        await updateMoney(interaction, betAmount, betMultiplier)
         await checkForDebt(interaction);
 
     }else if(result == false)
     {
-        await updateMoney(interaction, betAmount, -1)
+        await updateMoney(interaction, betAmount, betMultiplier)
         await checkForDebt(interaction);
 
     }

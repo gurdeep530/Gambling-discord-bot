@@ -8,7 +8,8 @@ exports.getBetAmount = async function(interaction, profileData){
     }
     if(interaction.options.getString('amount') == 'all')
         {betAmount = profileData.coins;}
-
+    else if(interaction.options.getString('amount') == 'half')
+        {betAmount = Math.ceil(profileData.coins/2)}
     else if(interaction.options.getString('amount').includes(','))
         {betAmount = parseInt(interaction.options.getString('amount').replace(',', ''));}
 

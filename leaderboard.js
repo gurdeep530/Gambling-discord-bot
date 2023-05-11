@@ -27,7 +27,7 @@ module.exports = {
         const memberIdx = members.findIndex((member) => member.userId === id);
 
         leaderboardEmbed.setFooter({
-            text: (username + ', your rank is '+ (memberIdx + 1) + ' with ' + coins + ' coins.')
+            text: (username + ', your rank is '+ (memberIdx + 1) + ' with ' +  await numberWithCommas(coins) + ' coins.')
         });
 
         const topTen = members.slice(0,10);
