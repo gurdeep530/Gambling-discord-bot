@@ -6,7 +6,7 @@ Real version is a private rep.
 This is a full-featured Discord bot designed for server entertainment through interactive gambling games and live betting functionality on Rainbow Six Siege ranked matches.
 
 ## ⚙️ Features
-(https://github.com/gurdeep530/Gambling-discord-bot/blob/main/extra%20assests/discord%20bot%20mini%20games%20-%20Made%20with%20Clipchamp.mp4)
+!(https://github.com/gurdeep530/Gambling-discord-bot/blob/main/extra%20assests/discord%20bot%20mini%20games%20-%20Made%20with%20Clipchamp.mp4)
 - 🎰 **Casino-Style Games**  
   Users can play games like Blackjack, Slots, and Roulette using in-server currency.
 
