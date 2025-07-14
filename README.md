@@ -28,12 +28,14 @@ This is a full-featured Discord bot designed for server entertainment through in
 
 `/siegeline` is a specialized module allowing users to place real-time bets on **live Rainbow Six Siege ranked matches**.
 
-### How It Works:
+### How It Works: 
 1. A user runs `/siegeline <playername>` to trigger a live match check via web scraping.
 2. If a game is detected, the bot enters **Betting Live** mode and opens a betting UI in Discord.
 3. Other users can bet whether the player will win, lose, or draw the match.
 4. After the match ends, the bot uses the game’s public API to compare stats and determine the result.
 5. Winners are paid out based on the odds, and results are displayed in a final embed message.
+
+   ![Go to extra Assets for Diagram!](https://github.com/gurdeep530/Gambling-discord-bot/blob/main/extra%20assests/Siegeline-explanantion.png)
 
 ### Technologies Used:
 - **Node.js** & **Discord.js**
