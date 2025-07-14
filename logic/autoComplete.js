@@ -56,31 +56,6 @@ let rouletteChoices =  [
     {name:'black 34', value: 37, id: 8}, {name:'black 35', value: 37, id: 8},{name:'black 36', value: 37, id: 8},
     ];
 
-
-let playerNames = [  {name:'Gurdeep', value:'Goldendeep'}, 
-                    {name:'Gursi', value:'Papi2raw'},
-                    {name:'Ranjit', value:'Theloneranjer'},
-                    {name:'Jaybir', value:'Ogicecreamman'},
-                    {name:'Amreet', value:'LickMyToto'},
-                    {name:'Amitpal', value:'slamitpal'},
-                    {name:'Vish', value:'Travishscott'},
-                    {name:'Jasjit', value:'Jpmann24'},
-                    {name:'Karandeep', value:'UntappdP0t3ntal'},
-                    {name:'Gurvinder', value:'Lonelygangster'},
-                    {name:'Aaron', value:'PhilosopherJatt'},
-                    {name:'Neehal', value:'iiconspiracies'},
-                    {name:'Atif', value:'supermaniphone6'},
-                    {name:'Parm', value:'parm3016'},
-                    {name:'Sahil', value:'Mr_4thquarter2'},
-                    {name:'DojaPhat', value:'Dojaphat'},
-                    {name:'Tajji', value:'ancient-replayys'},
-                    {name:'Jassilassi', value:'jassilassi'},
-                    {name:'StealYoKills', value:'StealYoKills'},
-                    {name:'Gurdeeps smurf', value:'oglcecreamman'},
-                    {name:'LickMyphudi', value:'lickmyphudi'}
-                ]
-
-exports.playerNames = playerNames;
 exports.rouletteChoices = rouletteChoices;
 exports.autoComplete = async function (interaction, choices)
 {
